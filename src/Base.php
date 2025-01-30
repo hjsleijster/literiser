@@ -1,6 +1,6 @@
 <?php
 
-namespace Literiser;
+namespace Hjsleijster\Literiser;
 
 class Base
 {
@@ -13,7 +13,7 @@ class Base
 	private static $entrypoint; // web, xhr, cli
 
 	public static function boot() {
-		spl_autoload_register('Base::autoload');
+		spl_autoload_register(__NAMESPACE__ . '\Base::autoload');
 		self::errorReporting();
 		self::init();
 		self::baseConfig();
