@@ -1,6 +1,6 @@
 <?php
 
-namespace Literiser
+namespace Literiser;
 
 class Base
 {
