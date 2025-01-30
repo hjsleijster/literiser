@@ -1,0 +1,11 @@
+{
+    "name": "hjsleijster/literiser",
+    "description": "Liberiser Lite",
+    "type": "project",
+    "autoload": {
+        "psr-4": {
+            "Hjsleijster\\Literiser\\": "src/"
+        }
+    },
+    "require": {}
+}
