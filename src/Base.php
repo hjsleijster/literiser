@@ -14,6 +14,9 @@ class Base
 
 	public static function boot() {
 		spl_autoload_register(__NAMESPACE__ . '\Base::autoload');
+		class_alias(__NAMESPACE__. '\Base', 'Literiser');
+		class_alias(__NAMESPACE__. '\Module', 'LiteriserModule');
+
 		self::errorReporting();
 		self::init();
 		self::baseConfig();
@@ -141,7 +144,9 @@ class Base
 		self::$module = $module;
 		self::$moduleObject = (new self::$module)->register();
 
-		self::$moduleObject->baseConfig(self::$config[self::$module]);
+		if (!empty(self::$config[self::$module])) {
+			self::$moduleObject->baseConfig(self::$config[self::$module]);
+		}
 		self::$moduleObject->setUri(self::$uri);
 		if (is_array(self::$request)) {
 			self::$moduleObject->setRequest(self::$request);
