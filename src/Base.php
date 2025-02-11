@@ -11,6 +11,7 @@ class Base
 	private static $title = ''; // title of the website
 	private static $config = []; // merged default en environment config
 	private static $entrypoint; // web, xhr, cli
+	private static $webAssets = []; // js & css files
 
 	public static function boot() {
 		spl_autoload_register(__NAMESPACE__ . '\Base::autoload');
@@ -22,7 +23,7 @@ class Base
 		self::baseConfig();
 
 		if (empty(self::$config['default_route'])) {
-			throw new Exception('Default route error', 1);
+			throw new \Exception('Default route error', 1);
 		}
 
 		if (PHP_SAPI == 'cli') {
@@ -48,7 +49,7 @@ class Base
 
 	public static function autoload($class) {
 		$class = ucfirst($class);
-		$file = 'classes/' . $class . '.php';
+		$file = 'modules/' . $class . '.php';
 
 		if (file_exists($file)) {
 			require_once($file);
@@ -75,11 +76,11 @@ class Base
 	}
 
 	private static function baseConfig() {
-		self::$config = array_merge(
-			parse_ini_file('config.ini', true)
-			, parse_ini_file('env.ini', true)
-			, self::$config
-		);
+		self::$config = parse_ini_file('literiser.ini', true);
+
+		if (is_file('literiser-env.ini')) {
+			self::$config = array_merge(self::$config, parse_ini_file('literiser-env.ini', true));
+		}
 	}
 
 	public static function config($var, $value) {
@@ -127,8 +128,13 @@ class Base
 	private static function web() {
 		$module = self::$uri[0] ?? self::$config['default_route'];
 
+		self::addAsset('assets/main.js');
+		self::addAsset('assets/main.css');
+
 		if (self::initModule($module)) {
 			$r = self::$moduleObject->web();
+			self::addAsset('assets/' . $module . '.css');
+			self::addAsset('assets/' . $module . '.js');
 		} else {
 			$r = self::throw404();
 		}
@@ -162,16 +168,31 @@ class Base
 		return '<h1>404!</h1>';
 	}
 
-	private static function webOutput($content) {
-		$r = '<!DOCTYPE html><html><head>
-		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-		<script src="/main.js?' . filemtime('main.js'). '"></script>
-		<link rel="stylesheet" type="text/css" href="/style.css?' . filemtime('style.css'). '">
-		<link rel="icon" href="/favicon.png?' . filemtime('favicon.png'). '" type="image/png" sizes="512x512" />
-		<title>' . self::$title . '</title>
-		</head><body>%content%</body></html>';
+	public static function addAsset($asset) {
+		self::$webAssets[] = $asset;
+	}
 
-		$r = str_replace(["\n", "\t"], '', $r);
+	private static function webOutput($content) {
+		$r = '<!DOCTYPE html><html><head>';
+
+		if (!empty(self::$config['jquery'])) {
+			$r .= '<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>';
+		}
+
+		foreach (self::$webAssets as $asset) {
+			if (!is_file($asset)) {
+				continue;
+			}
+
+			if (str_contains($asset, '.js')) {
+				$r .= '<script src="/' . $asset . '?' . filemtime($asset). '"></script>';
+			} elseif (str_contains($asset, '.css')) {
+				$r .= '<link rel="stylesheet" type="text/css" href="/' . $asset . '?' . filemtime($asset). '">';
+			}
+		}
+		$r .= '<link rel="icon" href="/assets/favicon.png?' . filemtime('assets/favicon.png'). '" type="image/png" sizes="512x512" />';
+		$r .= '<title>' . self::$title . '</title>';
+		$r .= '</head><body>%content%</body></html>';
 
 		$r = str_replace('%content%', $content, $r);
 
