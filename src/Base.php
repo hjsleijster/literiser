@@ -12,11 +12,13 @@ class Base
 	private static $config = []; // merged default en environment config
 	private static $entrypoint; // web, xhr, cli
 	private static $webAssets = []; // js & css files
+	private static $headTags = []; // head tags
 
 	public static function boot() {
 		spl_autoload_register(__NAMESPACE__ . '\Base::autoload');
 		class_alias(__NAMESPACE__. '\Base', 'Literiser');
 		class_alias(__NAMESPACE__. '\Module', 'LiteriserModule');
+		class_alias(__NAMESPACE__. '\DB', 'LiteriserDB');
 
 		self::errorReporting();
 		self::init();
@@ -87,6 +89,16 @@ class Base
 		self::$config[$var] = $value;
 	}
 
+	public static function getConfig($section, $var = null) {
+		if (is_null($section) && !is_null($var)) {
+			return self::$config[$var];
+		} elseif (!is_null($var)) {
+			return self::$config[$section][$var];
+		} else {
+			return self::$config[$section];
+		}
+	}
+
 	private static function init() {
 		setlocale(LC_ALL, 'nl_NL.UTF-8');
 		date_default_timezone_set('Europe/Amsterdam');
@@ -113,9 +125,8 @@ class Base
 
 		$method = [self::$moduleObject, 'xhr'];
 		$action = self::$uri[1];
-		$args = array_slice(self::$uri, 2);
 
-		$r = call_user_func($method, $action, $args);
+		$r = call_user_func($method, $action, self::$request);
 
 		if (isset($r) && is_array($r)) {
 			header('Content-Type: application/json');
@@ -172,12 +183,18 @@ class Base
 		self::$webAssets[] = $asset;
 	}
 
+	public static function addHeadTag($headTag) {
+		self::$headTags[] = $headTag;
+	}
+
 	private static function webOutput($content) {
 		$r = '<!DOCTYPE html><html><head>';
 
 		if (!empty(self::$config['jquery'])) {
 			$r .= '<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>';
 		}
+
+		$r.= implode('', self::$headTags);
 
 		foreach (self::$webAssets as $asset) {
 			if (!is_file($asset)) {
@@ -190,7 +207,11 @@ class Base
 				$r .= '<link rel="stylesheet" type="text/css" href="/' . $asset . '?' . filemtime($asset). '">';
 			}
 		}
-		$r .= '<link rel="icon" href="/assets/favicon.png?' . filemtime('assets/favicon.png'). '" type="image/png" sizes="512x512" />';
+
+		if (is_file('assets/favicon.png')) {
+			$r .= '<link rel="icon" href="/assets/favicon.png?' . filemtime('assets/favicon.png'). '" type="image/png" sizes="512x512" />';
+		}
+
 		$r .= '<title>' . self::$title . '</title>';
 		$r .= '</head><body>%content%</body></html>';
 
