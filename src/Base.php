@@ -73,7 +73,19 @@ class Base
 			if (self::$entrypoint != 'cli') {
 				header('Content-Type: text/plain');
 			}
-			print_r($e);
+
+			if (is_a($e, 'mysqli_sql_exception')) {
+				$error = str_replace('; check the manual that corresponds to your MariaDB server version for the right syntax to use', '', mysqli_error(DB::getConnection()));
+				foreach ($e->getTrace() as $trace) {
+					if (basename($trace['file']) != 'DB.php') {
+						$errorLocation = $trace;
+						break;
+					}
+				}
+				echo $error . PHP_EOL . $errorLocation['file'] . ' (line ' . $errorLocation['line'] . ', ' . $errorLocation['function'] . '-function)';
+			} else {
+				print_r($e);
+			}
 		});
 	}
 
