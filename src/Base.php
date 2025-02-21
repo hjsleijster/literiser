@@ -82,7 +82,7 @@ class Base
 						break;
 					}
 				}
-				echo $error . PHP_EOL . $errorLocation['file'] . ' (line ' . $errorLocation['line'] . ', ' . $errorLocation['function'] . '-function)';
+				echo $error . PHP_EOL . $errorLocation['file'] . ' (line ' . $errorLocation['line'] . ')';
 			} else {
 				print_r($e);
 			}
@@ -138,7 +138,7 @@ class Base
 		$method = [self::$moduleObject, 'xhr'];
 		$action = self::$uri[1];
 
-		$r = call_user_func($method, $action, self::$request);
+		$r = call_user_func($method, $action);
 
 		if (isset($r) && is_array($r)) {
 			header('Content-Type: application/json');

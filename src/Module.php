@@ -32,8 +32,8 @@ trait Module
 		return call_user_func([$this, $method], $args);
 	}
 
-	public function xhr($action, $args) {
+	public function xhr($action) {
 		$method = 'xhr_' . $action;
-		return call_user_func([$this, $method], $args);
+		return call_user_func([$this, $method]);
 	}
 }
