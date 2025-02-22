@@ -119,16 +119,50 @@ class Base
 
 	private static function cli() {
 		$action = $GLOBALS['argv'][1] ?? '';
+		$args = array_slice($GLOBALS['argv'], 2);
 		if (!$action) {
 			return false;
 		}
-		list($module, $action) = explode(':', $action);
+
+		if (str_contains($action, ':')) {
+			list($module, $action) = explode(':', $action);
+		} else {
+			return call_user_func([__CLASS__, 'cli_' . $action], $args);
+		}
+
 		self::initModule($module);
 		
 		$method = [self::$moduleObject, 'cli'];
-		$args = array_slice($GLOBALS['argv'], 2);
 
 		return call_user_func($method, $action, $args);
+	}
+
+	private static function cli_dbUpgrade() {
+		chdir('db');
+		if (!is_file('version')) {
+			touch('version');
+		}
+		$currentVersion = file_get_contents('version') ?: 0;
+
+		$files = glob('*sql');
+		natsort($files);
+		foreach ($files as $file) {
+			$version = str_replace(['db', '.sql'], '', $file);
+			if ($version <= $currentVersion) {
+				continue;
+			}
+			$queries = file_get_contents($file);
+			$result = DB::multiquery($queries);
+
+			if ($result) {
+				file_put_contents('version', $version);
+				echo 'success: ' . $version . PHP_EOL;
+			}
+		}
+
+		if (empty($result)) {
+			return 'nothing to do' . PHP_EOL;
+		}
 	}
 
 	private static function xhr() {

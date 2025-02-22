@@ -5,7 +5,6 @@ namespace Hjsleijster\Literiser;
 class DB
 {
 	private static $conn; // db connection
-	private static $sqlError; // db connection
 
 	private static function connect() {
 		$dbConfig = Base::getConfig('db');
@@ -33,6 +32,16 @@ class DB
 		} else {
 			return mysqli_fetch_all($result, MYSQLI_ASSOC);
 		}
+	}
+
+	public static function multiquery($queries) {
+		if (! self::$conn) {
+			self::connect();
+		}
+
+		$result = mysqli_multi_query(self::$conn, $queries);
+
+		return $result;
 	}
 
 	public static function val($query) {
