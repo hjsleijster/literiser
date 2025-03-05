@@ -40,6 +40,7 @@ class DB
 		}
 
 		$result = mysqli_multi_query(self::$conn, $queries);
+		while (mysqli_next_result(self::$conn)) {}
 
 		return $result;
 	}
