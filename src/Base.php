@@ -154,7 +154,7 @@ class Base
 			$queries = file_get_contents($file);
 			$result = DB::multiquery($queries);
 
-			if ($result) {
+			if ($result !== false) {
 				file_put_contents('version', $version);
 				echo 'success: ' . $version . PHP_EOL;
 			}
