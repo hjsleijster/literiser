@@ -127,14 +127,14 @@ class Base
 		if (str_contains($action, ':')) {
 			list($module, $action) = explode(':', $action);
 		} else {
-			return call_user_func([__CLASS__, 'cli_' . $action], $args);
+			return call_user_func([__CLASS__, 'cli_' . $action], ...$args);
 		}
 
 		self::initModule($module);
 		
 		$method = [self::$moduleObject, 'cli'];
 
-		return call_user_func($method, $action, $args);
+		return call_user_func($method, $action, ...$args);
 	}
 
 	private static function cli_dbUpgrade() {
