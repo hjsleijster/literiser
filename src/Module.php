@@ -27,7 +27,7 @@ trait Module
 	public function init() {
 	}
 
-	public function cli($action, $args) {
+	public function cli($action, $args = []) {
 		$method = 'cli_' . $action;
 		return call_user_func([$this, $method], $args);
 	}
