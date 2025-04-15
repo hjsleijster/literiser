@@ -188,7 +188,7 @@ class Base
 		self::addAsset('assets/main.js');
 		self::addAsset('assets/main.css');
 
-		if (self::initModule($module)) {
+		if (self::initModule($module) && method_exists(self::$moduleObject, 'web')) {
 			$r = self::$moduleObject->web();
 			self::addAsset('assets/' . $module . '.css');
 			self::addAsset('assets/' . $module . '.js');
@@ -222,7 +222,11 @@ class Base
 	private static function throw404() {
 		header("HTTP/1.0 404 Not Found");
 
-		return '<h1>404!</h1>';
+		if (self::$entrypoint == 'web') {
+			return '<h1>404</h1>';
+		} else {
+			return json_encode('404');
+		}
 	}
 
 	public static function addAsset($asset) {
