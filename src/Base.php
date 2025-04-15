@@ -46,10 +46,11 @@ class Base
 	}
 
 	public static function autoload($class) {
-		$class = ucfirst($class);
-		$file = 'modules/' . $class . '.php';
+		$dir = 'modules';
+		$contents = glob($dir . '/*');
+		$file = current(preg_grep('/^' . $dir . '\/' . preg_quote($class) . '.php$/i', $contents));
 
-		if (file_exists($file)) {
+		if ($file) {
 			require_once($file);
 		}
 	}
