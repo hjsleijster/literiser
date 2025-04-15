@@ -24,10 +24,6 @@ class Base
 		self::init();
 		self::baseConfig();
 
-		if (empty(self::$config['default_route'])) {
-			throw new \Exception('Default route error', 1);
-		}
-
 		if (PHP_SAPI == 'cli') {
 			self::$entrypoint = 'cli';
 			$r = self::cli();
@@ -91,6 +87,7 @@ class Base
 
 	private static function baseConfig() {
 		self::$config = parse_ini_file('literiser.ini', true);
+		self::$config['base_module'] ??= basename(getcwd());
 
 		if (is_file('literiser-env.ini')) {
 			self::$config = array_merge(self::$config, parse_ini_file('literiser-env.ini', true));
@@ -185,7 +182,7 @@ class Base
 	}
 
 	private static function web() {
-		$module = self::$uri[0] ?? self::$config['default_route'];
+		$module = self::$uri[0] ?? self::$config['base_module'];
 
 		self::addAsset('assets/main.js');
 		self::addAsset('assets/main.css');
