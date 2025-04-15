@@ -10,7 +10,7 @@ class Base
 	private static $moduleObject; // object of module
 	private static $title = ''; // title of the website
 	private static $config = []; // merged default en environment config
-	private static $entrypoint; // web, xhr, cli
+	private static $entrypoint; // cli, xhr, api, web
 	private static $webAssets = []; // js & css files
 	private static $headTags = []; // head tags
 
@@ -35,6 +35,9 @@ class Base
 			if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
 				self::$entrypoint = 'xhr';
 				$r = self::xhr();
+			} elseif (self::$uri[0] == 'api') {
+				self::$entrypoint = 'api';
+				$r = self::api();
 			} else {
 				self::$entrypoint = 'web';
 				$r = self::web();
@@ -173,6 +176,23 @@ class Base
 		$action = self::$uri[1];
 
 		$r = call_user_func($method, $action);
+
+		if (isset($r) && is_array($r)) {
+			header('Content-Type: application/json');
+			return json_encode($r);
+		} else {
+			return $r;
+		}
+	}
+
+	private static function api() {
+		$module = 'api';
+
+		if (self::initModule($module)) {
+			$r = self::$moduleObject->getResponse();
+		} else {
+			$r = self::throw404();
+		}
 
 		if (isset($r) && is_array($r)) {
 			header('Content-Type: application/json');
