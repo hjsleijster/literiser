@@ -35,7 +35,7 @@ class Base
 			if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
 				self::$entrypoint = 'xhr';
 				$r = self::xhr();
-			} elseif (self::$uri[0] == 'api') {
+			} elseif (!empty(self::$uri[0]) && self::$uri[0] == 'api') {
 				self::$entrypoint = 'api';
 				$r = self::api();
 			} else {
