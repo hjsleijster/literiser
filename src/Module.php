@@ -20,6 +20,10 @@ trait Module
 		$this->uri = $uri;
 	}
 
+	public function uri($i) {
+		return $this->uri[$i] ?? null;
+	}
+
 	public function setRequest($request) {
 		$this->request = $request;
 	}
